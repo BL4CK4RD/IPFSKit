@@ -22,7 +22,9 @@ public struct HttpIo : NetworkIo {
         GraniteLogger.info("HttpIo receiveFrom url is \(url)")
         let task = URLSession.shared.dataTask(with: url) {
             (data: Data?, response: URLResponse?, error: Error?) in
-            
+            if let response = response as? HTTPURLResponse {
+		print(response.statusCode) }
+
             do {
                 guard error == nil else { throw HttpIoError.transmissionError((error?.localizedDescription)!) }
                 guard let data = data else { throw IpfsApiError.nilData }
