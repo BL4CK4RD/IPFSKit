@@ -162,7 +162,7 @@ extension Multipart {
 		    print(error)
 	    }
 		 if let response = response as? HTTPURLResponse {
-		print(response?.statusCode) }
+		print(response.statusCode) }
             // FIXME: use Swift 5 Result type rather than passing nil data.
             if error != nil || data == nil {
                 GraniteLogger.info("Error in dataTaskWithRequest: \(String(describing: error))")
