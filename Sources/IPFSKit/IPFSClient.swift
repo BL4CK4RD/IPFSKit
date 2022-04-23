@@ -264,7 +264,7 @@ public class IPFSClient: IPFSBase {
     
     public func add(_ fileData: Data, completionHandler: @escaping ([MerkleNode]) -> Void) throws {
         print("data adding startet")
-        try net.sendTo(baseUrl+"add", content: fileData) {
+        try net.sendTo(baseUrl+"add?s", content: fileData) {
             data in
             do {
                 /// If there was no data fetched pass an empty dictionary and return.
