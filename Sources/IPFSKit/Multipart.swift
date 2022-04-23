@@ -147,6 +147,7 @@ extension Multipart {
     
     public static func finishMultipart(_ multipart: Multipart, completionHandler: @escaping (Data) -> Void) {
         
+	    print("finish")
         let outString = "--" + multipart.boundary + "--" + lineFeed
         
         multipart.body.append(outString.data(using: String.Encoding.utf8)!)
@@ -160,6 +161,7 @@ extension Multipart {
             if let error=error {
 		    print(error)
 	    }
+		print(response.statusCode)
             // FIXME: use Swift 5 Result type rather than passing nil data.
             if error != nil || data == nil {
                 GraniteLogger.info("Error in dataTaskWithRequest: \(String(describing: error))")
