@@ -33,7 +33,7 @@ public struct Multipart {
 
         boundary = Multipart.createBoundary()
 
-        guard let url = URL(string: targetUrl) else { print("url failed") throw MultipartError.failedURLCreation }
+        guard let url = URL(string: targetUrl) else {throw MultipartError.failedURLCreation }
         request = NSMutableURLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("multipart/form-data; boundary="+boundary, forHTTPHeaderField: "content-type")
