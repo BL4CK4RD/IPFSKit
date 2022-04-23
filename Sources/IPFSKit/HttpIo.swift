@@ -54,7 +54,7 @@ public struct HttpIo : NetworkIo {
     }
     
     public func sendTo(_ target: String, content: Data, completionHandler: @escaping (Data) -> Void) throws {
-
+        print("send to")
         var multipart = try Multipart(targetUrl: target, encoding: .utf8)
         multipart = try Multipart.addFilePart(multipart, fileName: nil , fileData: content)
         Multipart.finishMultipart(multipart, completionHandler: completionHandler)
