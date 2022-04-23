@@ -238,7 +238,6 @@ public class IPFSClient: IPFSBase {
     /// base commands
     
     public func add(_ filePath: String, completionHandler: @escaping ([MerkleNode]) -> Void) throws {
-        
         try net.sendTo(baseUrl+"add?s", filePath: filePath) {
             data in
             do {
@@ -264,7 +263,7 @@ public class IPFSClient: IPFSBase {
     // Store binary data
     
     public func add(_ fileData: Data, completionHandler: @escaping ([MerkleNode]) -> Void) throws {
-        
+        print("data adding startet")
         try net.sendTo(baseUrl+"add?stream-channels=true", content: fileData) {
             data in
             do {
