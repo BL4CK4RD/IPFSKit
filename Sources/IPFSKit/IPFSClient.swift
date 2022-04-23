@@ -208,7 +208,7 @@ public class IPFSClient: IPFSBase {
         
         
         /// No https yet as TLS1.2 in OS X 10.11 is not allowing comms with the node.
-        baseUrl = "\(scheme)\(host):\(port)\(version)"
+        baseUrl = "\(scheme)\(host)\(version)"
         net = HttpIo()
         
         /** All of IPFSApi's properties need to be set before we can use self which
