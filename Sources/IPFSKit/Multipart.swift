@@ -165,12 +165,13 @@ extension Multipart {
 		print(response.statusCode) }
             // FIXME: use Swift 5 Result type rather than passing nil data.
             if error != nil || data == nil {
+		    print("all nil")
                 GraniteLogger.info("Error in dataTaskWithRequest: \(String(describing: error))")
                 let emptyData = Data()
                 completionHandler(emptyData)
                 return
             }
-
+		print(data)
             completionHandler(data!)
             
         }
