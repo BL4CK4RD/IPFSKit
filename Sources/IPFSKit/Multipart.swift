@@ -24,7 +24,7 @@ public struct Multipart {
     let request: NSMutableURLRequest
 
     init(targetUrl: String, encoding: String.Encoding) throws {
-        
+        print("create")
         // Eg. UTF8
         self.encoding = encoding
         guard let charset = Multipart.charsetString(from: encoding) else { throw MultipartError.invalidEncoding }
@@ -33,11 +33,12 @@ public struct Multipart {
 
         boundary = Multipart.createBoundary()
 
-        guard let url = URL(string: targetUrl) else { throw MultipartError.failedURLCreation }
+        guard let url = URL(string: targetUrl) else { print("url failed") throw MultipartError.failedURLCreation }
         request = NSMutableURLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("multipart/form-data; boundary="+boundary, forHTTPHeaderField: "content-type")
         request.setValue("Swift IPFS Client", forHTTPHeaderField: "user-agent")
+	print(request)
     }
 }
 
@@ -118,6 +119,8 @@ extension Multipart {
     
     public static func addFilePart(_ oldMultipart: Multipart, fileName: String?, fileData: Data) throws -> Multipart {
         
+	    
+	print("filepart")
         var outString = "--" + oldMultipart.boundary + lineFeed
         oldMultipart.body.append(outString.data(using: String.Encoding.utf8)!)
 
@@ -154,7 +157,9 @@ extension Multipart {
         /// Send off the request
         let task = URLSession.shared.dataTask(with: (multipart.request as URLRequest)) {
             (data: Data?, response: URLResponse?, error: Error?) -> Void in
-            
+            if let error=error {
+		    print(error)
+	    }
             // FIXME: use Swift 5 Result type rather than passing nil data.
             if error != nil || data == nil {
                 GraniteLogger.info("Error in dataTaskWithRequest: \(String(describing: error))")
