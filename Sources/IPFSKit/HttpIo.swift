@@ -21,7 +21,7 @@ public struct HttpIo : NetworkIo {
         guard let url = URL(string: source) else { throw HttpIoError.urlError("Invalid URL") }
         
 	    print(url)
-	    var request = URLRequest(url: endpointUrl)
+	    var request = URLRequest(url: url)
             request.httpMethod = "POST"
         let task = URLSession.shared.dataTask(with: request) {
             (data: Data?, response: URLResponse?, error: Error?) in
