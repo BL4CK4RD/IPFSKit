@@ -19,9 +19,11 @@ public struct HttpIo : NetworkIo {
 
     public func receiveFrom(_ source: String, completionHandler: @escaping (Data) throws -> Void) throws {
         guard let url = URL(string: source) else { throw HttpIoError.urlError("Invalid URL") }
-        GraniteLogger.info("HttpIo receiveFrom url is \(url)")
+        
 	    print(url)
-        let task = URLSession.shared.dataTask(with: url) {
+	    var request = URLRequest(url: endpointUrl)
+            request.httpMethod = "POST"
+        let task = URLSession.shared.dataTask(with: request) {
             (data: Data?, response: URLResponse?, error: Error?) in
             if let response = response as? HTTPURLResponse {
 		print(response.statusCode) }
@@ -35,6 +37,7 @@ public struct HttpIo : NetworkIo {
                 try completionHandler(data)
                 
             } catch {
+		    print(error)
                 GraniteLogger.info("Error \(error) in completionHandler passed to fetchData ")
             }
         }
