@@ -14,7 +14,9 @@ public class Block : ClientSubCommand {
     var parent: IPFSBase?
     
     public func get(_ hash: Multihash, completionHandler: @escaping ([UInt8]) -> Void) throws {
-        try parent!.fetchBytes("block/get?stream-channels=true&arg=\(b58String(hash))", completionHandler: completionHandler)
+        try parent!.fetchBytes("block/get?stream-channels=true&arg=\(b58String(hash))", completionHandler: completionHandler, onError: { error in
+            print(error)
+        })
     }                                                                
     
     public func put(_ data: [UInt8], completionHandler: @escaping (MerkleNode) -> Void) throws {
@@ -33,6 +35,8 @@ public class Block : ClientSubCommand {
             } catch {
                 GraniteLogger.info("Block Error:\(error)")
             }
+        } onError: { error in
+            print(error)
         }
     }
     

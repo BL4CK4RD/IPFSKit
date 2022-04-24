@@ -55,6 +55,8 @@ public class Refs : ClientSubCommand {
             }
             let multiAddrs = c
             completionHandler(multiAddrs)
+        } onError: { error in
+            print(error)
         }
     }
 

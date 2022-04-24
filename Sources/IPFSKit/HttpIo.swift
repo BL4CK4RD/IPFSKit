@@ -16,29 +16,26 @@ enum HttpIoError : Error {
 }
 
 public struct HttpIo : NetworkIo {
-
-    public func receiveFrom(_ source: String, completionHandler: @escaping (Data) throws -> Void) throws {
-        guard let url = URL(string: source) else { throw HttpIoError.urlError("Invalid URL") }
-        
-	    print(url)
-	    var request = URLRequest(url: url)
-            request.httpMethod = "POST"
+  
+    public func receiveFrom(_ source: String, completionHandler: @escaping (Data) throws -> Void, onError: @escaping (_ error : Error) -> Void) {
+        guard let url = URL(string: source) else {
+            onError(HttpIoError.urlError("Invalid URL"))
+            return }
+        print(url)
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
         let task = URLSession.shared.dataTask(with: request) {
             (data: Data?, response: URLResponse?, error: Error?) in
             if let response = response as? HTTPURLResponse {
-		print(response.statusCode) }
-
+                print(response.statusCode)
+            }
             do {
                 guard error == nil else { throw HttpIoError.transmissionError((error?.localizedDescription)!) }
                 guard let data = data else { throw IpfsApiError.nilData }
-                
-//                GraniteLogger.info("The data:",NSString(data: data, encoding: String.Encoding.utf8.rawValue))
-                
                 try completionHandler(data)
                 
-            } catch {
-		    print(error)
-                GraniteLogger.info("Error \(error) in completionHandler passed to fetchData ")
+            } catch let error {
+                onError(error)
             }
         }
         
@@ -59,22 +56,32 @@ public struct HttpIo : NetworkIo {
         task.resume()
     }
     
-    public func sendTo(_ target: String, content: Data, completionHandler: @escaping (Data) -> Void) throws {
+    public func sendTo(_ target: String, content: Data, completionHandler: @escaping (Data) -> Void, onError: @escaping (_ error : Error) -> Void) {
         print("send to")
-        var multipart = try Multipart(targetUrl: target, encoding: .utf8)
-        multipart = try Multipart.addFilePart(multipart, fileName: nil , fileData: content)
-        Multipart.finishMultipart(multipart, completionHandler: completionHandler)
+        do {
+            var multipart = try Multipart(targetUrl: target, encoding: .utf8)
+            multipart = try Multipart.addFilePart(multipart, fileName: nil , fileData: content)
+            Multipart.finishMultipart(multipart, completionHandler: completionHandler, onError: { error in
+                onError(error)
+            })
+        } catch let error  {
+            onError(error)
+        }
     }
 
 
-    public func sendTo(_ target: String, filePath: String, completionHandler: @escaping (Data) -> Void) throws {
-        
-        var multipart = try Multipart(targetUrl: target, encoding: .utf8)
-        
-        multipart = try handle(oldMultipart: multipart, files: [filePath])
-        
-        Multipart.finishMultipart(multipart, completionHandler: completionHandler)
-        
+    public func sendTo(_ target: String, filePath: String, completionHandler: @escaping (Data) -> Void, onError: @escaping (_ error : Error) -> Void) {
+        do {
+            var multipart = try Multipart(targetUrl: target, encoding: .utf8)
+            
+            multipart = try handle(oldMultipart: multipart, files: [filePath])
+            
+            Multipart.finishMultipart(multipart, completionHandler: completionHandler, onError: { error in
+                
+            })
+        } catch let error {
+            onError(error)
+        }
     }
     
     func handle(oldMultipart: Multipart, files: [String], prePath: String? = nil) throws -> Multipart{

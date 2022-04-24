@@ -12,6 +12,7 @@ import Foundation
 public enum MultipartError : Error {
     case failedURLCreation
     case invalidEncoding
+    case noData
 }
 
 public struct Multipart {
@@ -23,8 +24,8 @@ public struct Multipart {
     var body = NSMutableData()
     let request: NSMutableURLRequest
 
-    init(targetUrl: String, encoding: String.Encoding) throws {
-        print("create")
+    init(targetUrl: String, encoding: String.Encoding) throws{
+        print("create URL...")
         // Eg. UTF8
         self.encoding = encoding
         guard let charset = Multipart.charsetString(from: encoding) else { throw MultipartError.invalidEncoding }
@@ -34,11 +35,12 @@ public struct Multipart {
         boundary = Multipart.createBoundary()
 
         guard let url = URL(string: targetUrl) else {throw MultipartError.failedURLCreation }
+        
         request = NSMutableURLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("multipart/form-data; boundary="+boundary, forHTTPHeaderField: "content-type")
         request.setValue("Swift IPFS Client", forHTTPHeaderField: "user-agent")
-	print(request)
+        print(request)
     }
 }
 
@@ -145,34 +147,33 @@ extension Multipart {
         return oldMultipart
     }
     
-    public static func finishMultipart(_ multipart: Multipart, completionHandler: @escaping (Data) -> Void) {
+    // Added Error handling
+    public static func finishMultipart(_ multipart: Multipart, completionHandler: @escaping (Data) -> Void, onError: @escaping (_ error : Error) -> Void) {
         
-	    print("finish")
+        print("Urlsession will start...")
         let outString = "--" + multipart.boundary + "--" + lineFeed
         
         multipart.body.append(outString.data(using: String.Encoding.utf8)!)
         
         multipart.request.setValue(String(multipart.body.length), forHTTPHeaderField: "content-length")
         multipart.request.httpBody = multipart.body as Data
-
+        
         /// Send off the request
         let task = URLSession.shared.dataTask(with: (multipart.request as URLRequest)) {
             (data: Data?, response: URLResponse?, error: Error?) -> Void in
-            if let error=error {
-		    print(error)
-	    }
-		 if let response = response as? HTTPURLResponse {
-		print(response.statusCode) }
-            // FIXME: use Swift 5 Result type rather than passing nil data.
-            if error != nil || data == nil {
-		    print("all nil")
-                GraniteLogger.info("Error in dataTaskWithRequest: \(String(describing: error))")
-                let emptyData = Data()
-                completionHandler(emptyData)
-                return
+            if let error = error {
+                print(error.localizedDescription)
+                onError(error)
             }
-		print(data)
-            completionHandler(data!)
+            if let response = response as? HTTPURLResponse {
+                print(response.statusCode)
+            }
+            if let data = data {
+                completionHandler(data)
+            }
+            else {
+                onError(MultipartError.noData)
+            }
             
         }
         

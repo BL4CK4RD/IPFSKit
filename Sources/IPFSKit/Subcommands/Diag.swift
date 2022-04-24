@@ -18,6 +18,8 @@ public class Diag : ClientSubCommand {
         try parent!.fetchBytes("diag/net?stream-channels=true") {
             bytes in
             completionHandler(String(bytes: bytes, encoding: String.Encoding.utf8)!)
+        } onError: { error in
+            print(error)
         }
     }
     
@@ -26,6 +28,8 @@ public class Diag : ClientSubCommand {
         try parent!.fetchBytes("diag/sys?stream-channels=true") {
             bytes in
             completionHandler(String(bytes: bytes, encoding: String.Encoding.utf8)!)
+        } onError: { error in
+            print(error)
         }
     }
 }

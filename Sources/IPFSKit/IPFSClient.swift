@@ -94,16 +94,20 @@ extension IPFSBase {
             /// At this point we could check to see if the json contains a code/message for flagging errors.
             
             try completionHandler(JsonType.parse(json as AnyObject))
+        } onError: { error in
+            print(error)
         }
     }
     
-    func fetchData(_ path: String, completionHandler: @escaping (Data) throws -> Void) throws {
+    func fetchData(_ path: String, completionHandler: @escaping (Data) throws -> Void, onError: @escaping (_ error : Error) -> Void) {
         
-        try net.receiveFrom(baseUrl + path, completionHandler: completionHandler)
+        net.receiveFrom(baseUrl + path, completionHandler: completionHandler, onError: { error in
+            onError(error)
+        })
     }
     
-    func fetchBytes(_ path: String, completionHandler: @escaping ([UInt8]) throws -> Void) throws {
-        try fetchData(path) {
+    func fetchBytes(_ path: String, completionHandler: @escaping ([UInt8]) -> Void, onError: @escaping (_ error : Error) -> Void) {
+        fetchData(path) {
             (data: Data) in
             
             /// Convert the data to a byte array
@@ -114,7 +118,9 @@ extension IPFSBase {
             // copy bytes into array
             (data as NSData).getBytes(&bytes, length:count * MemoryLayout<UInt8>.size)
             
-            try completionHandler(bytes)
+            completionHandler(bytes)
+        } onError: { error in
+            onError(error)
         }
     }
 }
@@ -237,8 +243,8 @@ public class IPFSClient: IPFSBase {
     
     /// base commands
     
-    public func add(_ filePath: String, completionHandler: @escaping ([MerkleNode]) -> Void) throws {
-        try net.sendTo(baseUrl+"add?s", filePath: filePath) {
+    public func add(_ filePath: String, completionHandler: @escaping ([MerkleNode]) -> Void, onError: @escaping (_ error : Error) -> Void) {
+        net.sendTo(baseUrl+"add?s", filePath: filePath) {
             data in
             do {
                 /// If there was no data fetched pass an empty dictionary and return.
@@ -254,17 +260,19 @@ public class IPFSClient: IPFSBase {
                 
                 completionHandler( result )
                 
-            } catch {
-                GraniteLogger.info("Error inside add completion handler: \(error)")
+            } catch let error {
+                onError(error)
             }
+        } onError: { error in
+            onError(error)
         }
     }
     
     // Store binary data
     
-    public func add(_ fileData: Data, completionHandler: @escaping ([MerkleNode]) -> Void) throws {
+    public func add(_ fileData: Data, completionHandler: @escaping ([MerkleNode]) -> Void, onError: @escaping (_ error : Error) -> Void) throws {
         print("data adding startet")
-        try net.sendTo(baseUrl+"add?s", content: fileData) {
+        net.sendTo(baseUrl+"add?s", content: fileData) {
             data in
             do {
                 /// If there was no data fetched pass an empty dictionary and return.
@@ -282,8 +290,10 @@ public class IPFSClient: IPFSBase {
                 completionHandler( result )
                 
             } catch {
-                GraniteLogger.info("Error inside add completion handler: \(error)")
+               onError(error)
             }
+        } onError: {error in
+            onError(error)
         }
     }
     
@@ -305,13 +315,16 @@ public class IPFSClient: IPFSBase {
         }
     }
 
-    public func cat(_ hash: Multihash, completionHandler: @escaping ([UInt8]) -> Void) throws {
-        try fetchBytes("cat/\(b58String(hash))", completionHandler: completionHandler)
+    public func cat(_ hash: Multihash, completionHandler: @escaping ([UInt8]) -> Void, onError: @escaping (_ error : Error) -> Void)  {
+        fetchBytes("cat/\(b58String(hash))", completionHandler: completionHandler, onError: { error in
+            onError(error)
+        })
     }
     
-    public func get(_ hash: Multihash, completionHandler: @escaping ([UInt8]) -> Void) throws {
-        try self.cat(hash, completionHandler: completionHandler)
-    }
+    // Same as cat??
+//    public func get(_ hash: Multihash, completionHandler: @escaping ([UInt8]) -> Void) throws {
+//        try self.cat(hash, completionHandler: completionHandler, onError: on)
+//    }
 
 
     public func refs(_ hash: Multihash, recursive: Bool, completionHandler: @escaping ([Multihash]) -> Void) throws {

@@ -63,6 +63,8 @@ public class IpfsObject : ClientSubCommand {
             } catch {
                 GraniteLogger.info("IpfsObject Error:\(error)")
             }
+        } onError: { error in 
+        print(error)
         }
     }
     
@@ -95,7 +97,9 @@ public class IpfsObject : ClientSubCommand {
     
     public func data(_ hash: Multihash, completionHandler: @escaping ([UInt8]) -> Void) throws {
         
-        try parent!.fetchBytes("object/data?stream-channels=true&arg=" + b58String(hash), completionHandler: completionHandler)
+        try parent!.fetchBytes("object/data?stream-channels=true&arg=" + b58String(hash), completionHandler: completionHandler, onError: { error in
+            error
+        })
     }
     
 //    public func patch(_ root: Multihash, cmd: ObjectPatchCommand, args: String..., completionHandler: @escaping (MerkleNode) throws -> Void) throws {
